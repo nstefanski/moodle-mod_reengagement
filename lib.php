@@ -472,11 +472,28 @@ function reengagement_email_user($reengagement, $inprogress) {
     if (($reengagement->emailrecipient == REENGAGEMENT_RECIPIENT_USER) ||
         ($reengagement->emailrecipient == REENGAGEMENT_RECIPIENT_BOTH)) {
         // We are supposed to send email to the user.
-        $usersendresult = email_to_user($user,
+        $message = new \core\message\message();
+            $message->component = 'moodle';
+            $message->name = 'instantmessage';
+            $message->userfrom = 7; //tk change to teacher
+            $message->userto = $user;
+            $message->subject = $templateddetails['emailsubject'];
+            $message->fullmessage = $plaintext;
+            $message->fullmessageformat = FORMAT_MARKDOWN; //or HTML?
+            $message->fullmessagehtml = $templateddetails['emailcontent'];
+            $message->smallmessage = substr($messagetext, 0, 200).'...';
+            $message->notification = '0';
+            $message->contexturl = $CFG->wwwroot.'/course/index.php?id='.$reengagement->course;
+            $message->contexturlname = 'YOUR ESCOFFIER COURSE';
+            $message->replyto = "nms@staff.escoffier.edu"; //tk change to teacher
+            //$content = array('*' => array('header' => ' test ', 'footer' => ' test ')); // Extra content for specific processor
+            //$message->set_additional_content('email', $content);
+        $usersendresult = message_send($message);
+        /*$usersendresult = email_to_user($user,
                 $SITE->shortname,
                 $templateddetails['emailsubject'],
                 $plaintext,
-                $templateddetails['emailcontent']);
+                $templateddetails['emailcontent']);*/
         if (!$usersendresult) {
             mtrace("failed to send user $user->id email for reengagement $reengagement->id");
         }
